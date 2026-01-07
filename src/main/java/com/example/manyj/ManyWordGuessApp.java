@@ -12,7 +12,9 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.scene.media.AudioClip;
 import javafx.stage.Stage;
+
 
 import java.util.*;
 
@@ -34,57 +36,10 @@ public class ManyWordGuessApp extends Application {
     private boolean isGameOver = false;
     private boolean isDarkMode = false;
     private boolean isMuted = false;
+    private boolean isFullScreen = false;
 
     // Daten
-    private final List<String> wordList = Arrays.asList(
-            "ABOUT", "ABOVE", "ACTOR", "ACUTE", "ADMIT", "ADOPT", "ADULT", "AFTER", "AGAIN", "AGENT",
-            "AGREE", "AHEAD", "ALARM", "ALBUM", "ALERT", "ALIKE", "ALIVE", "ALLOW", "ALONE", "ALONG",
-            "ALTER", "AMONG", "ANGER", "ANGLE", "ANGRY", "APART", "APPLE", "APPLY", "ARENA", "ARGUE",
-            "ARISE", "ARRAY", "ASIDE", "ASSET", "AUDIO", "AUDIT", "AVOID", "AWARD", "AWARE", "BADLY",
-            "BAKER", "BASIC", "BASIS", "BEACH", "BEGIN", "BEING", "BELOW", "BENCH", "BIRTH", "BLACK",
-            "BLAME", "BLIND", "BLOCK", "BLOOD", "BOARD", "BOOST", "BOUND", "BRAIN", "BRAND", "BREAD",
-            "BREAK", "BRICK", "BRIEF", "BRING", "BROAD", "BROWN", "BUILD", "BUILT", "BUYER", "CABLE",
-            "CALIF", "CARRY", "CATCH", "CAUSE", "CHAIN", "CHAIR", "CHART", "CHASE", "CHEAP", "CHECK",
-            "CHESS", "CHIEF", "CHILD", "CHINA", "CHOIR", "CLAIM", "CLASS", "CLEAN", "CLEAR", "CLICK",
-            "CLOCK", "CLOSE", "COACH", "COAST", "COULD", "COUNT", "COURT", "COVER", "CRAFT", "CRASH",
-            "CREAM", "CRIME", "CROSS", "CROWD", "CROWN", "CURVE", "CYCLE", "DAILY", "DANCE", "DATED",
-            "DEALT", "DEATH", "DEBUT", "DELAY", "DEPTH", "DOING", "DOUBT", "DOZEN", "DRAFT", "DRAMA",
-            "DREAM", "DRESS", "DRINK", "DRIVE", "DROVE", "DYING", "EARLY", "EARTH", "EIGHT", "ELDER",
-            "ELECT", "ELITE", "EMPTY", "ENEMY", "ENJOY", "ENTER", "ENTRY", "EQUAL", "ERROR", "EVENT",
-            "EVERY", "EXACT", "EXIST", "EXTRA", "FAITH", "FALSE", "FAULT", "FIBER", "FIELD", "FIFTH",
-            "FIFTY", "FIGHT", "FINAL", "FIRST", "FIXED", "FLASH", "FLEET", "FLOOR", "FLUID", "FOCUS",
-            "FORCE", "FORTH", "FORTY", "FOUND", "FRAME", "FRANK", "FRAUD", "FRESH", "FRONT", "FRUIT",
-            "FULLY", "FUNNY", "GIANT", "GIVEN", "GLASS", "GLOBE", "GOING", "GRACE", "GRADE", "GRAND",
-            "GRANT", "GRASS", "GREAT", "GREEN", "GROSS", "GROUP", "GROWN", "GUARD", "GUESS", "GUEST",
-            "GUIDE", "HAPPY", "HARRY", "HEART", "HEAVY", "HENCE", "HORSE", "HOTEL", "HOUSE", "HUMAN",
-            "IDEAL", "IMAGE", "IMPLY", "INDEX", "INNER", "INPUT", "ISSUE", "JOINT", "JUDGE", "KNOWN",
-            "LABEL", "LARGE", "LASER", "LATER", "LAUGH", "LAYER", "LEARN", "LEAST", "LEAVE", "LEGAL",
-            "LEVEL", "LIGHT", "LIMIT", "LOCAL", "LOGIC", "LOOSE", "LOWER", "LUCKY", "LUNCH", "MAJOR",
-            "MAKER", "MARCH", "MATCH", "MAYBE", "MEANT", "MEDIA", "METAL", "MIGHT", "MINOR", "MODEL",
-            "MONEY", "MONTH", "MORAL", "MOTOR", "MOUNT", "MOUSE", "MOUTH", "MOVIE", "MUSIC", "NAKED",
-            "NEEDS", "NEVER", "NEWLY", "NIGHT", "NOISE", "NORTH", "NOVEL", "NURSE", "OCCUR", "OCEAN",
-            "OFFER", "OFTEN", "OUIJA", "ORDER", "OTHER", "OUGHT", "PAINT", "PANEL", "PAPER", "PARTY", "PEACE",
-            "PHASE", "PHONE", "PHOTO", "PIECE", "PILOT", "PITCH", "PLACE", "PLAIN", "PLANE", "PLANT",
-            "PLATE", "POINT", "POUND", "POWER", "PRESS", "PRICE", "PRIDE", "PRIME", "PRINT", "PRIOR",
-            "PRIZE", "PROOF", "PROUD", "PROVE", "QUEEN", "QUICK", "QUIET", "RADIO", "RAISE", "RANGE",
-            "RAPID", "RATIO", "REACH", "READY", "REFER", "RIGHT", "RIVER", "ROBOT", "ROUGH", "ROUND",
-            "ROUTE", "ROYAL", "RURAL", "SCALE", "SCENE", "SCOPE", "SCORE", "SENSE", "SERVE", "SEVEN",
-            "SHALL", "SHAPE", "SHARE", "SHARP", "SHEET", "SHELF", "SHELL", "SHIFT", "SHIRT", "SHOCK",
-            "SHOOT", "SHORT", "SHOWN", "SIGHT", "SINCE", "SKILL", "SLEEP", "SLIDE", "SMALL", "SMART",
-            "SMILE", "SMOKE", "SOLID", "SOLVE", "SORRY", "SOUND", "SOUTH", "SPACE", "SPARE", "SPEAK",
-            "SPEED", "SPEND", "SPENT", "SPLIT", "SPORT", "STAFF", "STAGE", "STAND", "START", "STATE",
-            "STEEL", "STICK", "STILL", "STOCK", "STONE", "STORE", "STORM", "STORY", "STRIP", "STUCK",
-            "STUDY", "STUFF", "STYLE", "SUGAR", "SUITE", "SUPER", "SWEET", "TABLE", "TAKEN", "TASTE",
-            "TEACH", "TEETH", "TEXAS", "THANK", "THEIR", "THEME", "THERE", "THICK", "THING", "THINK",
-            "THIRD", "THOSE", "THREE", "THROW", "TIGER", "TIMES", "TIRED", "TITLE", "TODAY", "TOPIC",
-            "TOTAL", "TOUCH", "TOUGH", "TOWER", "TRACK", "TRADE", "TRAIN", "TREAT", "TREND", "TRIAL",
-            "TRIED", "TRIES", "TRUCK", "TRULY", "TRUST", "TRUTH", "TWICE", "UNDER", "UNION", "UNITY",
-            "UNTIL", "UPPER", "UPSET", "URBAN", "USAGE", "USUAL", "VALID", "VALUE", "VIDEO", "VIRUS",
-            "VISIT", "VITAL", "VOICE", "WASTE", "WATCH", "WATER", "WEIGH", "WHEEL", "WHERE", "WHILE",
-            "WHITE", "WHOLE", "WHOSE", "WOMAN", "WORLD", "WORRY", "WORTH", "WOULD", "WRITE", "WRONG",
-            "YIELD", "YOUNG", "YOUTH"
-
-    );
+    private List<String> wordList = new ArrayList<>();
 
     // UI Komponenten
     private LetterTile[][] grid = new LetterTile[MAX_TRIES][WORD_LENGTH];
@@ -100,6 +55,8 @@ public class ManyWordGuessApp extends Application {
 
     @Override
     public void start(Stage stage) {
+        loadWords();
+
         this.primaryStage = stage;
         primaryStage.setTitle("M.A.N.Y. - J. Word Guess");
 
@@ -116,6 +73,36 @@ public class ManyWordGuessApp extends Application {
 
         // Theme anwenden
         updateTheme(root);
+    }
+    /**
+     * Lädt die Wörter aus der words.txt im Resources-Ordner.
+     */
+    private void loadWords() {
+        wordList.clear();
+        try (var stream = getClass().getResourceAsStream("/words.txt")) {
+            if (stream != null) {
+                // Datei lesen
+                Scanner scanner = new Scanner(stream);
+                while (scanner.hasNextLine()) {
+                    String line = scanner.nextLine().trim().toUpperCase();
+                    // Nur gültige 5-Buchstaben-Wörter aufnehmen
+                    if (line.length() == WORD_LENGTH && line.matches("[A-Z]+")) {
+                        wordList.add(line);
+                    }
+                }
+                System.out.println("Wörter geladen: " + wordList.size());
+            } else {
+                System.err.println("words.txt nicht gefunden! Lade Fallback-Liste.");
+                wordList.addAll(Arrays.asList("HELLO", "WORLD", "ERROR")); // Notfall-Liste
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Sicherheitshalber: Falls Datei leer war
+        if (wordList.isEmpty()) {
+            wordList.add("EMPTY");
+        }
     }
 
     private void updateTheme(Region root) {
@@ -150,6 +137,8 @@ public class ManyWordGuessApp extends Application {
         mainScene = new Scene(layout, WIDTH, HEIGHT);
         applyStyles(mainScene, layout);
         primaryStage.setScene(mainScene);
+
+        primaryStage.setFullScreen(isFullScreen);
     }
 
     private void showSettingsScreen() {
@@ -159,28 +148,41 @@ public class ManyWordGuessApp extends Application {
 
         Text title = new Text("Settings");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 30));
+        title.getStyleClass().add("text"); // CSS
 
-        title.getStyleClass().add("text");
-
+        // 1. Dark Mode
         CheckBox darkModCheck = new CheckBox("Dark Mode");
         darkModCheck.setSelected(isDarkMode);
         darkModCheck.setStyle("-fx-font-size: 18px;");
+        darkModCheck.getStyleClass().add("text"); // Damit Textfarbe passt
         darkModCheck.setOnAction(e -> {
             isDarkMode = darkModCheck.isSelected();
-            updateTheme(layout); // Theme sofort ändern
+            updateTheme(layout);
         });
 
+        // 2. NEU: Full Screen Checkbox
+        CheckBox fullScreenCheck = new CheckBox("Full Screen");
+        fullScreenCheck.setSelected(isFullScreen); // Variable nutzen, nicht stage status
+        fullScreenCheck.setStyle("-fx-font-size: 18px;");
+        fullScreenCheck.getStyleClass().add("text");
+
+        fullScreenCheck.setOnAction(e -> {
+            isFullScreen = fullScreenCheck.isSelected(); // Variable speichern
+            primaryStage.setFullScreen(isFullScreen);    // Anwenden
+        });
+
+        // 3. Mute
         CheckBox muteCheck = new CheckBox("Mute Sounds");
         muteCheck.setSelected(isMuted);
         muteCheck.setStyle("-fx-font-size: 18px;");
+        muteCheck.getStyleClass().add("text");
         muteCheck.setOnAction(e -> isMuted = muteCheck.isSelected());
 
         Button backButton = createStyledButton("Back");
         backButton.setOnAction(e -> showStartScreen());
 
-        layout.getChildren().addAll(title, darkModCheck, muteCheck, backButton);
+        layout.getChildren().addAll(title, darkModCheck, fullScreenCheck, muteCheck, backButton);
 
-        // Alte Scene behalten, nur Root tauschen, damit CSS geladen bleibt
         mainScene.setRoot(layout);
         updateTheme(layout);
     }
@@ -223,6 +225,7 @@ public class ManyWordGuessApp extends Application {
         StackPane.setAlignment(gameTitle, Pos.CENTER);
         StackPane.setAlignment(btnBack, Pos.CENTER_LEFT);
 
+
         rootLayout.setTop(topBar);
         // ---------------------------------------------------------
 
@@ -251,6 +254,8 @@ public class ManyWordGuessApp extends Application {
 
         mainScene.setOnKeyPressed(event -> handleInput(event.getCode(), null));
         primaryStage.setScene(mainScene);
+
+        primaryStage.setFullScreen(isFullScreen);
     }
 
     // --- GAME LOGIC (Unverändert, aber nutzt CSS Klassen) ---
@@ -335,12 +340,11 @@ public class ManyWordGuessApp extends Application {
         }
         String guess = guessBuilder.toString();
 
-        // 1. VALIDIERUNG: Existiert das Wort?
-        // ACHTUNG: Aktuell prüfen wir nur gegen unsere kleine Liste.
-        // Für ein echtes Spiel bräuchte man eine sehr große Liste mit allen erlaubten Wörtern.
+        // 1. VALIDIERUNG
         if (!wordList.contains(guess)) {
-            shakeRow(currentAttempt); // Visuelles Feedback
-            return; // ABBRUCH: Versuch zählt nicht!
+            shakeRow(currentAttempt);
+            playSound("error.mp3"); // <--- NEU: Fehlersound
+            return;
         }
 
         // 2. Farben berechnen
@@ -391,11 +395,13 @@ public class ManyWordGuessApp extends Application {
 
         // 4. Sieg/Niederlage prüfen
         if (guess.equals(secretWord)) {
+            playSound("win.mp3"); // <--- NEU: Siegessound
             showEndGameDialog(true);
         } else {
             currentAttempt++;
             currentLetter = 0;
             if (currentAttempt >= MAX_TRIES) {
+                playSound("lose.mp3"); // <--- NEU: Verlierersound
                 showEndGameDialog(false);
             }
         }
@@ -405,13 +411,25 @@ public class ManyWordGuessApp extends Application {
      * Lässt die aktuelle Zeile wackeln (wenn Wort ungültig)
      */
     private void shakeRow(int rowData) {
-        // Wir müssen die HBox finden, die die aktuelle Zeile darstellt.
-        // Da 'grid' nur die Tiles speichert, holen wir die HBox über den Parent der Tiles.
         if (grid[rowData][0].getParent() instanceof HBox rowBox) {
+            // 1. Sicherheitshalber laufende Animationen auf diesem Knoten stoppen
+            // (JavaFX hat keine direkte "stopAllAnimations" für Node, aber der Reset unten hilft)
+
+            // 2. WICHTIG: Position immer erst auf 0 zurücksetzen!
+            // Sonst wandert die Box nach rechts, wenn man schnell hintereinander drückt.
+            rowBox.setTranslateX(0);
+
             TranslateTransition tt = new TranslateTransition(javafx.util.Duration.millis(50), rowBox);
+            // Statt 'ByX' (relativ) nutzen wir 'From' und 'To' für absolute Kontrolle,
+            // oder wir verlassen uns auf den Reset oben.
+            // Hier nutzen wir ByX, aber da wir oben auf 0 resettet haben, ist es sicher.
             tt.setByX(10f);
             tt.setCycleCount(4);
             tt.setAutoReverse(true);
+
+            // Am Ende der Animation sicherstellen, dass wir wirklich wieder bei 0 sind
+            tt.setOnFinished(e -> rowBox.setTranslateX(0));
+
             tt.play();
         }
     }
@@ -546,5 +564,25 @@ public class ManyWordGuessApp extends Application {
         */
 
         return logoBox;
+    }
+    /**
+     * Spielt einen Sound ab, wenn nicht stummgeschaltet.
+     * Erwartet die Datei im resources-Ordner (wie style.css).
+     */
+    private void playSound(String fileName) {
+        if (isMuted) return; // Mute-Einstellung beachten
+
+        try {
+            // Versuchen, die Datei zu laden
+            var resource = getClass().getResource("/" + fileName);
+            if (resource != null) {
+                AudioClip clip = new AudioClip(resource.toExternalForm());
+                clip.play();
+            } else {
+                System.out.println("Sounddatei nicht gefunden: " + fileName);
+            }
+        } catch (Exception e) {
+            System.err.println("Fehler beim Abspielen von " + fileName);
+        }
     }
 }
