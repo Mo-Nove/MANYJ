@@ -1,0 +1,140 @@
+/* --- GLOBALE VARIABLEN (Farben & Schrift) --- */
+.root {
+    /* Standard (Light Mode) */
+    -fx-font-family: 'Arial', sans-serif;
+    -color-bg: #ffffff;
+    -color-text: #000000;
+    -color-tile-border: #d3d6da;
+    -color-tile-absent: #787c7e;
+    -color-tile-present: #c9b458; /* Gelb */
+    -color-tile-correct: #6aaa64; /* Grün */
+    -color-key-bg: #d3d6da;
+
+    -fx-background-color: -color-bg;
+}
+
+/* --- DARK MODE ÜBERSCHREIBUNGEN --- */
+.root.dark-mode {
+    -color-bg: #121213;
+    -color-text: #ffffff;
+    -color-tile-border: #3a3a3c;
+    -color-tile-absent: #3a3a3c;
+    /* Grün und Gelb bleiben gleich oder werden leicht angepasst */
+    -color-key-bg: #818384;
+}
+
+/* --- TEXT & LABELS --- */
+.text {
+    -fx-fill: -color-text;
+}
+
+.label {
+    -fx-text-fill: -color-text;
+}
+
+/* --- BUTTONS (Startscreen & Menü) --- */
+.menu-button {
+    -fx-background-color: -color-tile-correct;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-background-radius: 20; /* Runde Ecken */
+    -fx-cursor: hand;
+}
+.menu-button:hover {
+    -fx-background-color: derive(-color-tile-correct, -20%); /* Dunkler beim Hover */
+}
+
+/* --- KEYBOARD BUTTONS --- */
+.key-button {
+    -fx-background-color: -color-key-bg;
+    -fx-text-fill: black;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+}
+.root.dark-mode .key-button {
+    -fx-text-fill: white;
+}
+
+/* Spezifische Tasten-Status (wird von Java gesetzt) */
+.key-correct { -fx-background-color: -color-tile-correct; -fx-text-fill: white !important; }
+.key-present { -fx-background-color: -color-tile-present; -fx-text-fill: white !important; }
+.key-absent  { -fx-background-color: -color-tile-absent;  -fx-text-fill: white !important; }
+
+/* --- GRID TILES (Die Buchstaben-Kästchen) --- */
+.letter-tile {
+    -fx-background-color: transparent;
+    -fx-border-color: -color-tile-border;
+    -fx-border-width: 2;
+    -fx-alignment: center;
+    /* NEU: Feste Mindestgröße erzwingen */
+    -fx-min-width: 60px;
+    -fx-min-height: 60px;
+    -fx-max-width: 60px;  /* Optional: verhindert Wachsen */
+    -fx-max-height: 60px;
+}
+
+.letter-tile Text {
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+    -fx-fill: -color-text;
+}
+
+/* Tile Status Klassen */
+.tile-correct {
+    -fx-background-color: -color-tile-correct;
+    -fx-border-color: -color-tile-correct;
+}
+.tile-correct Text { -fx-fill: white; }
+
+.tile-present {
+    -fx-background-color: -color-tile-present;
+    -fx-border-color: -color-tile-present;
+}
+.tile-present Text { -fx-fill: white; }
+
+.tile-absent {
+    -fx-background-color: -color-tile-absent;
+    -fx-border-color: -color-tile-absent;
+}
+.tile-absent Text { -fx-fill: white; }
+
+/* --- CHECKBOX --- */
+.check-box .box {
+    -fx-background-color: -color-bg;
+    -fx-border-color: -color-text;
+}
+.check-box:selected .mark {
+    -fx-background-color: -color-text;
+}
+.logo-container {
+    -fx-alignment: center;
+    -fx-padding: 20;
+}
+
+.logo-main {
+    /* Der obere Teil (M.A.N.Y. - J.) */
+    -fx-font-family: 'Times New Roman', serif; /* Klassische Serifen-Schrift */
+    -fx-font-size: 48px;
+    -fx-font-style: italic;
+    -fx-font-weight: normal;
+    -fx-fill: -color-text; /* Passt sich automatisch an Dark Mode an */
+}
+
+.logo-line {
+    /* Die Linie dazwischen */
+    -fx-stroke: -color-text;
+    -fx-stroke-width: 2;
+    -fx-stroke-line-cap: round;
+}
+
+.logo-sub {
+    /* Der untere Teil (WORD GUESS) */
+    -fx-font-family: 'Arial', sans-serif;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-fill: -color-text;
+    -fx-letter-spacing: 2px; /* Buchstaben etwas auseinanderziehen */
+}
