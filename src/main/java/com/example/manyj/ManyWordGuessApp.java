@@ -40,6 +40,9 @@ public class ManyWordGuessApp extends Application {
 
     // Daten
     private List<String> wordList = new ArrayList<>();
+    private List<String> allWordList = new ArrayList<>();
+    private List<String> easyWordList = new ArrayList<>();
+    private boolean isHardMode = false;
 
     // UI Komponenten
     private LetterTile[][] grid = new LetterTile[MAX_TRIES][WORD_LENGTH];
@@ -78,30 +81,38 @@ public class ManyWordGuessApp extends Application {
      * Lädt die Wörter aus der words.txt im Resources-Ordner.
      */
     private void loadWords() {
-        wordList.clear();
-        try (var stream = getClass().getResourceAsStream("/words.txt")) {
+        // 1. Die große Liste laden (Validation & Hard Mode)
+        loadListFromFile("/words.txt", allWordList);
+
+        // 2. Die einfache Liste laden (Easy Mode)
+        loadListFromFile("/common.txt", easyWordList);
+
+        // Fallback: Falls common.txt fehlt oder leer ist, kopieren wir einfach alles rüber
+        if (easyWordList.isEmpty()) {
+            easyWordList.addAll(allWordList);
+        }
+    }
+
+    /**
+     * Hilfsmethode: Liest eine Datei zeilenweise in die gegebene Liste.
+     */
+    private void loadListFromFile(String filename, List<String> targetList) {
+        targetList.clear();
+        try (var stream = getClass().getResourceAsStream(filename)) {
             if (stream != null) {
-                // Datei lesen
                 Scanner scanner = new Scanner(stream);
                 while (scanner.hasNextLine()) {
                     String line = scanner.nextLine().trim().toUpperCase();
-                    // Nur gültige 5-Buchstaben-Wörter aufnehmen
                     if (line.length() == WORD_LENGTH && line.matches("[A-Z]+")) {
-                        wordList.add(line);
+                        targetList.add(line);
                     }
                 }
-                System.out.println("Wörter geladen: " + wordList.size());
+                System.out.println("Geladen: " + filename + " -> " + targetList.size() + " Wörter.");
             } else {
-                System.err.println("words.txt nicht gefunden! Lade Fallback-Liste.");
-                wordList.addAll(Arrays.asList("HELLO", "WORLD", "ERROR")); // Notfall-Liste
+                System.err.println("Datei nicht gefunden: " + filename);
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }
-
-        // Sicherheitshalber: Falls Datei leer war
-        if (wordList.isEmpty()) {
-            wordList.add("EMPTY");
         }
     }
 
@@ -160,7 +171,20 @@ public class ManyWordGuessApp extends Application {
             updateTheme(layout);
         });
 
-        // 2. NEU: Full Screen Checkbox
+        // 2. Hard Mode Checkbox
+        CheckBox hardModeCheck = new CheckBox("Hard Mode");
+        hardModeCheck.setSelected(isHardMode);
+        hardModeCheck.setStyle("-fx-font-size: 18px;");
+        hardModeCheck.getStyleClass().add("text");
+        // Tooltip optional: Erklärung anzeigen
+        hardModeCheck.setTooltip(new Tooltip("Enables obscure words as solutions"));
+
+        hardModeCheck.setOnAction(e -> {
+            isHardMode = hardModeCheck.isSelected();
+            // Optional: Settings speichern oder direkt anwenden
+        });
+
+        // 3. Full Screen Checkbox
         CheckBox fullScreenCheck = new CheckBox("Full Screen");
         fullScreenCheck.setSelected(isFullScreen); // Variable nutzen, nicht stage status
         fullScreenCheck.setStyle("-fx-font-size: 18px;");
@@ -171,7 +195,7 @@ public class ManyWordGuessApp extends Application {
             primaryStage.setFullScreen(isFullScreen);    // Anwenden
         });
 
-        // 3. Mute
+        // 4. Mute
         CheckBox muteCheck = new CheckBox("Mute Sounds");
         muteCheck.setSelected(isMuted);
         muteCheck.setStyle("-fx-font-size: 18px;");
@@ -181,7 +205,7 @@ public class ManyWordGuessApp extends Application {
         Button backButton = createStyledButton("Back");
         backButton.setOnAction(e -> showStartScreen());
 
-        layout.getChildren().addAll(title, darkModCheck, fullScreenCheck, muteCheck, backButton);
+        layout.getChildren().addAll(title, darkModCheck, fullScreenCheck, hardModeCheck, muteCheck, backButton);
 
         mainScene.setRoot(layout);
         updateTheme(layout);
@@ -191,8 +215,19 @@ public class ManyWordGuessApp extends Application {
         isGameOver = false;
         currentAttempt = 0;
         currentLetter = 0;
-        secretWord = wordList.get(new Random().nextInt(wordList.size()));
-        System.out.println("DEBUG: Secret Word is " + secretWord);
+
+        // --- SCHWIERIGKEITSGRAD LOGIK ---
+        Random rand = new Random();
+        if (isHardMode) {
+            // Hart: Wähle aus ALLEM (auch seltene Wörter wie XYLYL)
+            secretWord = allWordList.get(rand.nextInt(allWordList.size()));
+        } else {
+            // Leicht: Wähle nur aus den üblichen Wörtern (z.B. HOUSE)
+            secretWord = easyWordList.get(rand.nextInt(easyWordList.size()));
+        }
+        // --------------------------------
+
+        System.out.println("DEBUG: Secret Word is " + secretWord + " (HardMode: " + isHardMode + ")");
 
         rootLayout = new BorderPane();
         mainContainer = new VBox();
@@ -341,9 +376,9 @@ public class ManyWordGuessApp extends Application {
         String guess = guessBuilder.toString();
 
         // 1. VALIDIERUNG
-        if (!wordList.contains(guess)) {
+        if (!allWordList.contains(guess)) {
             shakeRow(currentAttempt);
-            playSound("error.mp3"); // <--- NEU: Fehlersound
+            playSound("error.mp3");
             return;
         }
 
