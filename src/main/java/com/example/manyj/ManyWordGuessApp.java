@@ -9,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
+import javafx.scene.image.Image;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -58,12 +59,33 @@ public class ManyWordGuessApp extends Application {
 
     @Override
     public void start(Stage stage) {
+        // 1. Wörter laden
         loadWords();
 
         this.primaryStage = stage;
         primaryStage.setTitle("M.A.N.Y. - J. Word Guess");
 
+        // --- ICON SETZEN ---
+        try {
+            // Versucht, icon.png aus den Resources zu laden
+            var iconStream = getClass().getResourceAsStream("/icon.png");
+            if (iconStream != null) {
+                stage.getIcons().add(new Image(iconStream));
+            } else {
+                System.out.println("Kein Icon gefunden (icon.png fehlt im resources Ordner).");
+            }
+        } catch (Exception e) {
+            System.err.println("Fehler beim Laden des Icons: " + e.getMessage());
+        }
+        // ------------------------
+
         showStartScreen();
+
+        // Settings wiederherstellen (Vollbild) bevor das Fenster gezeigt wird
+        if (isFullScreen) {
+            primaryStage.setFullScreen(true);
+        }
+
         primaryStage.show();
     }
 
