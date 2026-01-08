@@ -138,3 +138,42 @@
     -fx-fill: -color-text;
     -fx-letter-spacing: 2px; /* Buchstaben etwas auseinanderziehen */
 }
+/* --- POPUP / DIALOG STYLING --- */
+
+/* Der Hintergrund des Dialogs */
+.game-dialog {
+    -fx-background-color: -color-bg; /* Passt sich an Dark Mode an */
+}
+
+/* Der Bereich oben (Header/Titel) */
+.game-dialog > *.header-panel {
+    -fx-background-color: -color-bg;
+}
+
+/* Der Text im Titel */
+.game-dialog > *.header-panel > *.label {
+    -fx-font-family: 'Arial', sans-serif;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -color-text; /* Weiß im Dark Mode */
+}
+
+/* Der normale Text (Inhalt) */
+.game-dialog > *.label.content {
+    -fx-font-family: 'Arial', sans-serif;
+    -fx-font-size: 14px;
+    -fx-text-fill: -color-text;
+}
+
+/* Die Buttons im Popup (z.B. OK) */
+.game-dialog .button-bar .button {
+    -fx-background-color: -color-tile-correct; /* Dein Spiel-Grün */
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.game-dialog .button-bar .button:hover {
+    -fx-background-color: derive(-color-tile-correct, -20%);
+}

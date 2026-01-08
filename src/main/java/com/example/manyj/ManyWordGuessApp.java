@@ -10,6 +10,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -38,6 +39,7 @@ public class ManyWordGuessApp extends Application {
     private boolean isDarkMode = false;
     private boolean isMuted = false;
     private boolean isFullScreen = false;
+    private javafx.scene.media.AudioClip currentAudioClip;
 
     // Daten
     private List<String> wordList = new ArrayList<>();
@@ -77,14 +79,15 @@ public class ManyWordGuessApp extends Application {
         } catch (Exception e) {
             System.err.println("Fehler beim Laden des Icons: " + e.getMessage());
         }
-        // ------------------------
+        mainScene = new Scene(new VBox(), WIDTH, HEIGHT);
+
+        // CSS sofort einmal laden, das bleibt für immer
+        mainScene.getStylesheets().add(getClass().getResource("/com/example/manyj/style.css").toExternalForm());
+
+        primaryStage.setScene(mainScene);
+        // -------------------------------------------
 
         showStartScreen();
-
-        // Settings wiederherstellen (Vollbild) bevor das Fenster gezeigt wird
-        if (isFullScreen) {
-            primaryStage.setFullScreen(true);
-        }
 
         primaryStage.show();
     }
@@ -167,11 +170,19 @@ public class ManyWordGuessApp extends Application {
 
         layout.getChildren().addAll(logo, btnStart, btnSettings, btnQuit); // logo statt title
 
-        mainScene = new Scene(layout, WIDTH, HEIGHT);
-        applyStyles(mainScene, layout);
-        primaryStage.setScene(mainScene);
+        // 1. Theme anwenden (wichtig, da neuer Root)
+        updateTheme(layout);
 
-        primaryStage.setFullScreen(isFullScreen);
+        // 2. Den Inhalt der existierenden Scene austauschen
+        mainScene.setRoot(layout);
+
+        // 3. Tastatur-Events vom Spiel entfernen (wichtig!)
+        mainScene.setOnKeyPressed(null);
+
+        // 4. Vollbild sicherstellen (ohne Flackern)
+        if (isFullScreen) {
+            primaryStage.setFullScreen(true);
+        }
     }
 
     private void showSettingsScreen() {
@@ -234,59 +245,56 @@ public class ManyWordGuessApp extends Application {
     }
 
     private void startNewGame() {
+        // 1. Spielstatus zurücksetzen
         isGameOver = false;
         currentAttempt = 0;
         currentLetter = 0;
 
-        // --- SCHWIERIGKEITSGRAD LOGIK ---
+        // 2. Geheimes Wort auswählen (Basierend auf Schwierigkeit)
         Random rand = new Random();
         if (isHardMode) {
-            // Hart: Wähle aus ALLEM (auch seltene Wörter wie XYLYL)
+            // Hart: Wähle aus der riesigen Liste (auch seltene Wörter)
             secretWord = allWordList.get(rand.nextInt(allWordList.size()));
         } else {
-            // Leicht: Wähle nur aus den üblichen Wörtern (z.B. HOUSE)
+            // Leicht: Wähle aus der Liste gebräuchlicher Wörter
             secretWord = easyWordList.get(rand.nextInt(easyWordList.size()));
         }
-        // --------------------------------
+        System.out.println("DEBUG: Secret Word is " + secretWord);
 
-        System.out.println("DEBUG: Secret Word is " + secretWord + " (HardMode: " + isHardMode + ")");
-
+        // 3. Layout Aufbauen
         rootLayout = new BorderPane();
+
+        // Wrapper-Container für CSS-Styling (z.B. Dark Mode Background)
         mainContainer = new VBox();
         mainContainer.getChildren().add(rootLayout);
         VBox.setVgrow(rootLayout, Priority.ALWAYS);
 
+        // --- HEADER (StackPane für exakte Positionierung) ---
         StackPane topBar = new StackPane();
         topBar.setPadding(new Insets(10, 20, 10, 20));
 
-        // 1. Exit Button (Links)
+        // Exit Button (Links)
         Button btnBack = new Button("Exit");
         btnBack.getStyleClass().add("menu-button");
         btnBack.setPrefHeight(40);
         btnBack.setPrefWidth(80);
-
-        // WICHTIG: Fokus deaktivieren, damit Enter nicht den Button drückt!
-        btnBack.setFocusTraversable(false);
-
+        btnBack.setFocusTraversable(false); // WICHTIG: Damit Enter-Taste nicht den Button drückt
         btnBack.setOnAction(e -> showStartScreen());
 
-        // 2. Titel (Mitte)
+        // Titel (Mitte)
         Text gameTitle = new Text("Word Guess");
-        gameTitle.setFont(Font.font("Arial", FontWeight.BOLD, 24)); // Etwas größer
-        gameTitle.getStyleClass().add("text"); // Damit er im Dark Mode weiß wird
+        gameTitle.setFont(Font.font("Arial", FontWeight.BOLD, 24));
+        gameTitle.getStyleClass().add("text"); // Passt sich an Dark Mode an
 
-        // Elemente hinzufügen
+        // Elemente hinzufügen und ausrichten
         topBar.getChildren().addAll(gameTitle, btnBack);
-
-        // Positionierung: Titel in die Mitte, Button nach Links
         StackPane.setAlignment(gameTitle, Pos.CENTER);
         StackPane.setAlignment(btnBack, Pos.CENTER_LEFT);
 
-
         rootLayout.setTop(topBar);
-        // ---------------------------------------------------------
+        // ----------------------------------------------------
 
-        // Grid (Mitte)
+        // --- GRID (Spielfeld Mitte) ---
         VBox gridBox = new VBox(5);
         gridBox.setAlignment(Pos.CENTER);
         for (int i = 0; i < MAX_TRIES; i++) {
@@ -301,18 +309,26 @@ public class ManyWordGuessApp extends Application {
         }
         rootLayout.setCenter(gridBox);
 
-        // Keyboard (Unten)
-        VBox keyboardBox = createOnScreenKeyboard();
-        rootLayout.setBottom(keyboardBox);
+        // --- KEYBOARD (Unten) ---
+        // Erstellt die Tastatur und fügt sie unten ein
+        rootLayout.setBottom(createOnScreenKeyboard());
 
-        // Scene erstellen
-        mainScene = new Scene(mainContainer, WIDTH, HEIGHT);
-        applyStyles(mainScene, mainContainer);
+        // 4. SCENE UPDATE (Root Swapping für Performance & Vollbild)
+        // Statt eine neue Scene zu erstellen, tauschen wir nur den Inhalt aus.
 
+        // Theme auf den neuen Container anwenden
+        updateTheme(mainContainer);
+
+        // Den Wurzelknoten der existierenden Scene austauschen
+        mainScene.setRoot(mainContainer);
+
+        // Tastatur-Events neu registrieren
         mainScene.setOnKeyPressed(event -> handleInput(event.getCode(), null));
-        primaryStage.setScene(mainScene);
 
-        primaryStage.setFullScreen(isFullScreen);
+        // Vollbildstatus sicherstellen (verhindert Flackern/Rausspringen)
+        if (isFullScreen) {
+            primaryStage.setFullScreen(true);
+        }
     }
 
     // --- GAME LOGIC (Unverändert, aber nutzt CSS Klassen) ---
@@ -409,12 +425,62 @@ public class ManyWordGuessApp extends Application {
 
             // Kleiner Dialog
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Easter Egg Found!");
-            alert.setHeaderText("Hello MANYJ Team!");
-            alert.setContentText("Enjoy the song");
+
+            alert.initOwner(primaryStage);
+            alert.setTitle("Easter Egg spotted");
+            alert.setHeaderText("Secret song unlocked");
+            alert.setContentText("Enjoy it");
+
+            try {
+                // Wir laden dein Bild aus den Ressourcen
+                var imageStream = getClass().getResourceAsStream("/icon.png");
+                if (imageStream != null) {
+                    Image img = new Image(imageStream);
+                    ImageView iconView = new ImageView(img);
+
+                    // WICHTIG: Größe anpassen, sonst sprengt ein großes Bild das Fenster!
+                    iconView.setFitHeight(60);
+                    iconView.setFitWidth(60);
+
+                    // Das Bild als Grafik für den Dialog setzen (ersetzt das blaue 'i')
+                    alert.setGraphic(iconView);
+
+                    // OPTIONAL: Auch das kleine Fenster-Icon oben links ändern
+                    Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+                    stage.getIcons().add(img);
+                }
+            } catch (Exception e) {
+                // Falls was schiefgeht, einfach kein Icon anzeigen
+                alert.setGraphic(null);
+            }
+
+            // Wir holen uns das Fenster-Element des Alerts
+            DialogPane dialogPane = alert.getDialogPane();
+
+            // A) CSS Datei laden
+            dialogPane.getStylesheets().add(getClass().getResource("/com/example/manyj/style.css").toExternalForm());
+
+            // B) Unsere neue CSS-Klasse zuweisen
+            dialogPane.getStyleClass().add("game-dialog");
+
+            // C) Prüfen, ob Dark Mode an ist -> Klasse hinzufügen
+            if (isDarkMode) {
+                dialogPane.getStyleClass().add("dark-mode");
+            }
+            // --------------------------------
+
             alert.showAndWait();
 
-            // Wir brechen hier ab, damit es nicht als normaler Versuch zählt (oder doch, deine Wahl)
+            if (isFullScreen) {
+                primaryStage.setFullScreen(true);
+            }
+
+            // --- NEU: MUSIK STOPPEN ---
+            if (currentAudioClip != null) {
+                currentAudioClip.stop();
+            }
+
+            showEndGameDialog(true);
             return;
         }
 
@@ -648,14 +714,19 @@ public class ManyWordGuessApp extends Application {
      * Erwartet die Datei im resources-Ordner (wie style.css).
      */
     private void playSound(String fileName) {
-        if (isMuted) return; // Mute-Einstellung beachten
+        if (isMuted) return;
 
         try {
-            // Versuchen, die Datei zu laden
             var resource = getClass().getResource("/" + fileName);
             if (resource != null) {
-                AudioClip clip = new AudioClip(resource.toExternalForm());
-                clip.play();
+                // 1. Falls noch ein alter Sound läuft -> stoppen!
+                if (currentAudioClip != null && currentAudioClip.isPlaying()) {
+                    currentAudioClip.stop();
+                }
+
+                // 2. Neuen Clip erstellen und merken
+                currentAudioClip = new AudioClip(resource.toExternalForm());
+                currentAudioClip.play();
             } else {
                 System.out.println("Sounddatei nicht gefunden: " + fileName);
             }
