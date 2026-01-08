@@ -396,6 +396,27 @@ public class ManyWordGuessApp extends Application {
             guessBuilder.append(grid[currentAttempt][i].getLetter());
         }
         String guess = guessBuilder.toString();
+        // --- EASTER EGG ---
+        if (guess.equals("MANYJ")) {
+            // Spielt einen Sound ab (falls du einen hast)
+            playSound("MANYJ.mp3");
+
+            // Färbt ALLE Kacheln dieser Reihe BUNT oder BLAU
+            for (int i = 0; i < WORD_LENGTH; i++) {
+                grid[currentAttempt][i].setTileStatus("tile-correct"); // Oder eine neue CSS Klasse .tile-blue
+                grid[currentAttempt][i].setLetter(String.valueOf("MANYJ".charAt(i)));
+            }
+
+            // Kleiner Dialog
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Easter Egg Found!");
+            alert.setHeaderText("Hello MANYJ Team!");
+            alert.setContentText("Enjoy the song");
+            alert.showAndWait();
+
+            // Wir brechen hier ab, damit es nicht als normaler Versuch zählt (oder doch, deine Wahl)
+            return;
+        }
 
         // 1. VALIDIERUNG
         if (!allWordList.contains(guess)) {
