@@ -20,10 +20,7 @@ import javafx.stage.Stage;
 
 import java.util.*;
 
-/**
- * M.A.N.Y. - J. Word Guess
- * Version: CSS Styled
- */
+
 public class ManyWordGuessApp extends Application {
 
     private static final int WORD_LENGTH = 5;
@@ -61,7 +58,6 @@ public class ManyWordGuessApp extends Application {
 
     @Override
     public void start(Stage stage) {
-        // 1. Wörter laden
         loadWords();
 
         this.primaryStage = stage;
@@ -69,7 +65,6 @@ public class ManyWordGuessApp extends Application {
 
         // --- ICON SETZEN ---
         try {
-            // Versucht, icon.png aus den Resources zu laden
             var iconStream = getClass().getResourceAsStream("/icon.png");
             if (iconStream != null) {
                 stage.getIcons().add(new Image(iconStream));
@@ -81,46 +76,38 @@ public class ManyWordGuessApp extends Application {
         }
         mainScene = new Scene(new VBox(), WIDTH, HEIGHT);
 
-        // CSS sofort einmal laden, das bleibt für immer
         mainScene.getStylesheets().add(getClass().getResource("/com/example/manyj/style.css").toExternalForm());
 
         primaryStage.setScene(mainScene);
-        // -------------------------------------------
 
         showStartScreen();
 
         primaryStage.show();
     }
 
-    // --- HILFSMETHODE: CSS LADEN ---
+    // --- CSS LADEN ---
     private void applyStyles(Scene scene, Region root) {
-        // CSS Datei laden
         String css = this.getClass().getResource("style.css").toExternalForm();
         scene.getStylesheets().clear();
         scene.getStylesheets().add(css);
 
-        // Theme anwenden
         updateTheme(root);
     }
-    /**
-     * Lädt die Wörter aus der words.txt im Resources-Ordner.
-     */
+
     private void loadWords() {
-        // 1. Die große Liste laden (Validation & Hard Mode)
+        // Hard Mode
         loadListFromFile("/words.txt", allWordList);
 
-        // 2. Die einfache Liste laden (Easy Mode)
+        // Easy Mode
         loadListFromFile("/common.txt", easyWordList);
 
-        // Fallback: Falls common.txt fehlt oder leer ist, kopieren wir einfach alles rüber
+        // Sicherheitsmaßnahme
         if (easyWordList.isEmpty()) {
             easyWordList.addAll(allWordList);
         }
     }
 
-    /**
-     * Hilfsmethode: Liest eine Datei zeilenweise in die gegebene Liste.
-     */
+
     private void loadListFromFile(String filename, List<String> targetList) {
         targetList.clear();
         try (var stream = getClass().getResourceAsStream(filename)) {
@@ -142,7 +129,6 @@ public class ManyWordGuessApp extends Application {
     }
 
     private void updateTheme(Region root) {
-        // Klasse "dark-mode" hinzufügen oder entfernen
         if (isDarkMode) {
             if (!root.getStyleClass().contains("dark-mode")) {
                 root.getStyleClass().add("dark-mode");
@@ -170,16 +156,12 @@ public class ManyWordGuessApp extends Application {
 
         layout.getChildren().addAll(logo, btnStart, btnSettings, btnQuit); // logo statt title
 
-        // 1. Theme anwenden (wichtig, da neuer Root)
         updateTheme(layout);
 
-        // 2. Den Inhalt der existierenden Scene austauschen
         mainScene.setRoot(layout);
 
-        // 3. Tastatur-Events vom Spiel entfernen (wichtig!)
         mainScene.setOnKeyPressed(null);
 
-        // 4. Vollbild sicherstellen (ohne Flackern)
         if (isFullScreen) {
             primaryStage.setFullScreen(true);
         }
@@ -194,41 +176,35 @@ public class ManyWordGuessApp extends Application {
         title.setFont(Font.font("Arial", FontWeight.BOLD, 30));
         title.getStyleClass().add("text"); // CSS
 
-        // 1. Dark Mode
         CheckBox darkModCheck = new CheckBox("Dark Mode");
         darkModCheck.setSelected(isDarkMode);
         darkModCheck.setStyle("-fx-font-size: 18px;");
-        darkModCheck.getStyleClass().add("text"); // Damit Textfarbe passt
+        darkModCheck.getStyleClass().add("text");
         darkModCheck.setOnAction(e -> {
             isDarkMode = darkModCheck.isSelected();
             updateTheme(layout);
         });
 
-        // 2. Hard Mode Checkbox
         CheckBox hardModeCheck = new CheckBox("Hard Mode");
         hardModeCheck.setSelected(isHardMode);
         hardModeCheck.setStyle("-fx-font-size: 18px;");
         hardModeCheck.getStyleClass().add("text");
-        // Tooltip optional: Erklärung anzeigen
         hardModeCheck.setTooltip(new Tooltip("Enables obscure words as solutions"));
 
         hardModeCheck.setOnAction(e -> {
             isHardMode = hardModeCheck.isSelected();
-            // Optional: Settings speichern oder direkt anwenden
         });
 
-        // 3. Full Screen Checkbox
         CheckBox fullScreenCheck = new CheckBox("Full Screen");
-        fullScreenCheck.setSelected(isFullScreen); // Variable nutzen, nicht stage status
+        fullScreenCheck.setSelected(isFullScreen);
         fullScreenCheck.setStyle("-fx-font-size: 18px;");
         fullScreenCheck.getStyleClass().add("text");
 
         fullScreenCheck.setOnAction(e -> {
-            isFullScreen = fullScreenCheck.isSelected(); // Variable speichern
-            primaryStage.setFullScreen(isFullScreen);    // Anwenden
+            isFullScreen = fullScreenCheck.isSelected();
+            primaryStage.setFullScreen(isFullScreen);
         });
 
-        // 4. Mute
         CheckBox muteCheck = new CheckBox("Mute Sounds");
         muteCheck.setSelected(isMuted);
         muteCheck.setStyle("-fx-font-size: 18px;");
@@ -245,35 +221,30 @@ public class ManyWordGuessApp extends Application {
     }
 
     private void startNewGame() {
-        // 1. Spielstatus zurücksetzen
+        // Spielstatus zurücksetzen
         isGameOver = false;
         currentAttempt = 0;
         currentLetter = 0;
 
-        // 2. Geheimes Wort auswählen (Basierend auf Schwierigkeit)
         Random rand = new Random();
         if (isHardMode) {
-            // Hart: Wähle aus der riesigen Liste (auch seltene Wörter)
+            // Hard
             secretWord = allWordList.get(rand.nextInt(allWordList.size()));
         } else {
-            // Leicht: Wähle aus der Liste gebräuchlicher Wörter
+            // Easy
             secretWord = easyWordList.get(rand.nextInt(easyWordList.size()));
         }
         System.out.println("DEBUG: Secret Word is " + secretWord);
 
-        // 3. Layout Aufbauen
         rootLayout = new BorderPane();
 
-        // Wrapper-Container für CSS-Styling (z.B. Dark Mode Background)
         mainContainer = new VBox();
         mainContainer.getChildren().add(rootLayout);
         VBox.setVgrow(rootLayout, Priority.ALWAYS);
 
-        // --- HEADER (StackPane für exakte Positionierung) ---
         StackPane topBar = new StackPane();
         topBar.setPadding(new Insets(10, 20, 10, 20));
 
-        // Exit Button (Links)
         Button btnBack = new Button("Exit");
         btnBack.getStyleClass().add("menu-button");
         btnBack.setPrefHeight(40);
@@ -281,18 +252,16 @@ public class ManyWordGuessApp extends Application {
         btnBack.setFocusTraversable(false); // WICHTIG: Damit Enter-Taste nicht den Button drückt
         btnBack.setOnAction(e -> showStartScreen());
 
-        // Titel (Mitte)
         Text gameTitle = new Text("Word Guess");
         gameTitle.setFont(Font.font("Arial", FontWeight.BOLD, 24));
         gameTitle.getStyleClass().add("text"); // Passt sich an Dark Mode an
 
-        // Elemente hinzufügen und ausrichten
         topBar.getChildren().addAll(gameTitle, btnBack);
         StackPane.setAlignment(gameTitle, Pos.CENTER);
         StackPane.setAlignment(btnBack, Pos.CENTER_LEFT);
 
         rootLayout.setTop(topBar);
-        // ----------------------------------------------------
+
 
         // --- GRID (Spielfeld Mitte) ---
         VBox gridBox = new VBox(5);
@@ -310,28 +279,20 @@ public class ManyWordGuessApp extends Application {
         rootLayout.setCenter(gridBox);
 
         // --- KEYBOARD (Unten) ---
-        // Erstellt die Tastatur und fügt sie unten ein
         rootLayout.setBottom(createOnScreenKeyboard());
 
-        // 4. SCENE UPDATE (Root Swapping für Performance & Vollbild)
-        // Statt eine neue Scene zu erstellen, tauschen wir nur den Inhalt aus.
-
-        // Theme auf den neuen Container anwenden
         updateTheme(mainContainer);
 
-        // Den Wurzelknoten der existierenden Scene austauschen
         mainScene.setRoot(mainContainer);
 
-        // Tastatur-Events neu registrieren
         mainScene.setOnKeyPressed(event -> handleInput(event.getCode(), null));
 
-        // Vollbildstatus sicherstellen (verhindert Flackern/Rausspringen)
         if (isFullScreen) {
             primaryStage.setFullScreen(true);
         }
     }
 
-    // --- GAME LOGIC (Unverändert, aber nutzt CSS Klassen) ---
+    // --- GAME LOGIC ---
 
     private VBox createOnScreenKeyboard() {
         VBox layout = new VBox(8);
@@ -356,16 +317,14 @@ public class ManyWordGuessApp extends Application {
                 keyboardButtons.put(letter, key);
                 rowBox.getChildren().add(key);
             }
-            // Sonderbehandlung für die letzte Zeile (Z...)
             if (rowChars.startsWith("Z")) {
-                // NEU: Breitere Enter-Taste (80 statt 60)
                 Button enter = new Button("ENTER");
 
                 enter.setFocusTraversable(false);
 
-                enter.setPrefSize(90, 50); // Genug Platz für den Text
+                enter.setPrefSize(90, 50);
                 enter.getStyleClass().add("key-button");
-                enter.setStyle("-fx-font-size: 12px;"); // Schrift etwas kleiner damit es passt
+                enter.setStyle("-fx-font-size: 12px;");
                 enter.setOnAction(e -> handleInput(KeyCode.ENTER, null));
 
                 Button back = new Button("⌫");
@@ -376,7 +335,6 @@ public class ManyWordGuessApp extends Application {
                 back.getStyleClass().add("key-button");
                 back.setOnAction(e -> handleInput(KeyCode.BACK_SPACE, null));
 
-                // Enter links, Backspace rechts
                 rowBox.getChildren().add(0, enter);
                 rowBox.getChildren().add(back);
             }
@@ -403,9 +361,7 @@ public class ManyWordGuessApp extends Application {
         }
     }
 
-    /**
-     * Prüft das eingegebene Wort (Core Logic)
-     */
+
     private void checkGuess() {
         StringBuilder guessBuilder = new StringBuilder();
         for (int i = 0; i < WORD_LENGTH; i++) {
@@ -414,16 +370,12 @@ public class ManyWordGuessApp extends Application {
         String guess = guessBuilder.toString();
         // --- EASTER EGG ---
         if (guess.equals("MANYJ")) {
-            // Spielt einen Sound ab (falls du einen hast)
             playSound("MANYJ.mp3");
 
-            // Färbt ALLE Kacheln dieser Reihe BUNT oder BLAU
             for (int i = 0; i < WORD_LENGTH; i++) {
-                grid[currentAttempt][i].setTileStatus("tile-correct"); // Oder eine neue CSS Klasse .tile-blue
+                grid[currentAttempt][i].setTileStatus("tile-correct");
                 grid[currentAttempt][i].setLetter(String.valueOf("MANYJ".charAt(i)));
             }
-
-            // Kleiner Dialog
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
             alert.initOwner(primaryStage);
@@ -432,42 +384,32 @@ public class ManyWordGuessApp extends Application {
             alert.setContentText("Enjoy it");
 
             try {
-                // Wir laden dein Bild aus den Ressourcen
                 var imageStream = getClass().getResourceAsStream("/icon.png");
                 if (imageStream != null) {
                     Image img = new Image(imageStream);
                     ImageView iconView = new ImageView(img);
 
-                    // WICHTIG: Größe anpassen, sonst sprengt ein großes Bild das Fenster!
                     iconView.setFitHeight(60);
                     iconView.setFitWidth(60);
 
-                    // Das Bild als Grafik für den Dialog setzen (ersetzt das blaue 'i')
                     alert.setGraphic(iconView);
 
-                    // OPTIONAL: Auch das kleine Fenster-Icon oben links ändern
                     Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
                     stage.getIcons().add(img);
                 }
             } catch (Exception e) {
-                // Falls was schiefgeht, einfach kein Icon anzeigen
                 alert.setGraphic(null);
             }
 
-            // Wir holen uns das Fenster-Element des Alerts
             DialogPane dialogPane = alert.getDialogPane();
 
-            // A) CSS Datei laden
             dialogPane.getStylesheets().add(getClass().getResource("/com/example/manyj/style.css").toExternalForm());
 
-            // B) Unsere neue CSS-Klasse zuweisen
             dialogPane.getStyleClass().add("game-dialog");
 
-            // C) Prüfen, ob Dark Mode an ist -> Klasse hinzufügen
             if (isDarkMode) {
                 dialogPane.getStyleClass().add("dark-mode");
             }
-            // --------------------------------
 
             alert.showAndWait();
 
@@ -475,7 +417,6 @@ public class ManyWordGuessApp extends Application {
                 primaryStage.setFullScreen(true);
             }
 
-            // --- NEU: MUSIK STOPPEN ---
             if (currentAudioClip != null) {
                 currentAudioClip.stop();
             }
@@ -495,7 +436,7 @@ public class ManyWordGuessApp extends Application {
         int[] letterStatus = new int[WORD_LENGTH]; // 0: grau, 1: gelb, 2: grün
         boolean[] secretUsed = new boolean[WORD_LENGTH];
 
-        // Erst Grüne prüfen (Richtige Position)
+        // Grüne prüfen
         for (int i = 0; i < WORD_LENGTH; i++) {
             char gChar = guess.charAt(i);
             if (gChar == secretWord.charAt(i)) {
@@ -504,7 +445,7 @@ public class ManyWordGuessApp extends Application {
             }
         }
 
-        // Dann Gelbe prüfen (Falsche Position)
+        // Gelbe prüfen
         for (int i = 0; i < WORD_LENGTH; i++) {
             if (letterStatus[i] == 2) continue; // Schon grün
 
@@ -520,7 +461,7 @@ public class ManyWordGuessApp extends Application {
             }
         }
 
-        // 3. UI Update (Grid & Tastatur)
+        // 3. Grid & Tastatur
         for (int i = 0; i < WORD_LENGTH; i++) {
             LetterTile tile = grid[currentAttempt][i];
             String l = String.valueOf(guess.charAt(i));
@@ -539,39 +480,28 @@ public class ManyWordGuessApp extends Application {
 
         // 4. Sieg/Niederlage prüfen
         if (guess.equals(secretWord)) {
-            playSound("win.mp3"); // <--- NEU: Siegessound
+            playSound("win.mp3");
             showEndGameDialog(true);
         } else {
             currentAttempt++;
             currentLetter = 0;
             if (currentAttempt >= MAX_TRIES) {
-                playSound("lose.mp3"); // <--- NEU: Verlierersound
+                playSound("lose.mp3");
                 showEndGameDialog(false);
             }
         }
     }
 
-    /**
-     * Lässt die aktuelle Zeile wackeln (wenn Wort ungültig)
-     */
+    // --- Animationen --
     private void shakeRow(int rowData) {
         if (grid[rowData][0].getParent() instanceof HBox rowBox) {
-            // 1. Sicherheitshalber laufende Animationen auf diesem Knoten stoppen
-            // (JavaFX hat keine direkte "stopAllAnimations" für Node, aber der Reset unten hilft)
-
-            // 2. WICHTIG: Position immer erst auf 0 zurücksetzen!
-            // Sonst wandert die Box nach rechts, wenn man schnell hintereinander drückt.
             rowBox.setTranslateX(0);
 
             TranslateTransition tt = new TranslateTransition(javafx.util.Duration.millis(50), rowBox);
-            // Statt 'ByX' (relativ) nutzen wir 'From' und 'To' für absolute Kontrolle,
-            // oder wir verlassen uns auf den Reset oben.
-            // Hier nutzen wir ByX, aber da wir oben auf 0 resettet haben, ist es sicher.
             tt.setByX(10f);
             tt.setCycleCount(4);
             tt.setAutoReverse(true);
 
-            // Am Ende der Animation sicherstellen, dass wir wirklich wieder bei 0 sind
             tt.setOnFinished(e -> rowBox.setTranslateX(0));
 
             tt.play();
@@ -603,21 +533,18 @@ public class ManyWordGuessApp extends Application {
         VBox dialogLayout = new VBox(20);
         dialogLayout.setAlignment(Pos.CENTER);
         dialogLayout.setPadding(new Insets(30));
-        // Wir verlassen uns jetzt voll auf CSS (Rahmen etc.), daher keine harten Styles hier
         dialogLayout.setStyle("-fx-border-color: gray; -fx-border-width: 2;");
 
         Text message = new Text(won ? "Gewonnen!" : "Verloren: " + secretWord);
         message.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-        message.getStyleClass().add("text"); // Damit auch dieser Text im Darkmode weiß ist
+        message.getStyleClass().add("text");
 
-        // NEU: Wir nutzen die Hilfsmethode für das einheitliche Design
         Button btnRetry = createStyledButton("Retry");
         btnRetry.setOnAction(e -> {
             ((Stage) btnRetry.getScene().getWindow()).close();
             startNewGame();
         });
 
-        // NEU: Auch hier Styled Button
         Button btnQuit = createStyledButton("Quit");
         btnQuit.setOnAction(e -> {
             ((Stage) btnQuit.getScene().getWindow()).close();
@@ -628,7 +555,6 @@ public class ManyWordGuessApp extends Application {
 
         Scene dialogScene = new Scene(dialogLayout);
 
-        // WICHTIG: Das CSS muss auch auf das Popup-Fenster angewendet werden!
         applyStyles(dialogScene, dialogLayout);
 
         Stage dialogStage = new Stage();
@@ -641,17 +567,16 @@ public class ManyWordGuessApp extends Application {
     private Button createStyledButton(String text) {
         Button btn = new Button(text);
         btn.setPrefSize(200, 50);
-        btn.getStyleClass().add("menu-button"); // CSS Styling
+        btn.getStyleClass().add("menu-button");
         return btn;
     }
 
     // --- INNER CLASS: TILE ---
-    // Jetzt als StackPane gestylt via CSS
     private class LetterTile extends StackPane {
         private Text text;
 
         public LetterTile() {
-            this.getStyleClass().add("letter-tile"); // Basis CSS Klasse
+            this.getStyleClass().add("letter-tile");
 
             text = new Text("");
             this.getChildren().add(text);
@@ -665,66 +590,44 @@ public class ManyWordGuessApp extends Application {
             return text.getText();
         }
 
-        // Neue Methode: Setzt CSS Klasse statt harter Farbe
         public void setTileStatus(String cssClass) {
-            // Alte Status entfernen
             this.getStyleClass().removeAll("tile-correct", "tile-present", "tile-absent");
             this.getStyleClass().add(cssClass);
         }
     }
-    /**
-     * Erstellt das Logo im "Montreal Team" Stil.
-     * Nutzt CSS für Farben, damit Dark Mode funktioniert.
-     */
+    // --- Logo ---
     private VBox createLogo() {
         VBox logoBox = new VBox(5); // 5px Abstand vertikal
         logoBox.setAlignment(Pos.CENTER);
         logoBox.getStyleClass().add("logo-container");
 
-        // 1. Haupttext (M.A.N.Y. - J.)
+        // Haupttext
         Text mainText = new Text("M.A.N.Y. - J.");
         mainText.getStyleClass().add("logo-main");
 
-        // 2. Die Linie
-        // Wir nutzen eine "Line", deren Länge wir fixieren oder binden können.
-        // Hier machen wir sie etwas breiter als den Text visuell wirkt.
+        // Die Linie
         javafx.scene.shape.Line line = new javafx.scene.shape.Line(0, 0, 250, 0);
         line.getStyleClass().add("logo-line");
 
-        // 3. Untertext (WORD GUESS)
-        // Wir packen ihn in eine HBox, um ihn rechtsbündig unter der Linie zu haben
-        // (wie im Montreal Logo), oder zentriert. Hier zentriert für Symmetrie.
+        // Untertext
         Text subText = new Text("WORD GUESS");
         subText.getStyleClass().add("logo-sub");
 
-        // Option A: Zentriert (Klassisch für Games)
         logoBox.getChildren().addAll(mainText, line, subText);
-
-        /* // Option B: Wenn du es exakt wie im Bild willst (Subtext rechtsbündig):
-        HBox subTextBox = new HBox(subText);
-        subTextBox.setAlignment(Pos.CENTER_RIGHT); // Oder CENTER für Symmetrie
-        subTextBox.setMaxWidth(250); // Breite der Linie
-        logoBox.getChildren().addAll(mainText, line, subTextBox);
-        */
 
         return logoBox;
     }
-    /**
-     * Spielt einen Sound ab, wenn nicht stummgeschaltet.
-     * Erwartet die Datei im resources-Ordner (wie style.css).
-     */
+    // --- Sounds ---
     private void playSound(String fileName) {
         if (isMuted) return;
 
         try {
             var resource = getClass().getResource("/" + fileName);
             if (resource != null) {
-                // 1. Falls noch ein alter Sound läuft -> stoppen!
                 if (currentAudioClip != null && currentAudioClip.isPlaying()) {
                     currentAudioClip.stop();
                 }
 
-                // 2. Neuen Clip erstellen und merken
                 currentAudioClip = new AudioClip(resource.toExternalForm());
                 currentAudioClip.play();
             } else {

@@ -1,6 +1,6 @@
 /* --- GLOBALE VARIABLEN (Farben & Schrift) --- */
 .root {
-    /* Standard (Light Mode) */
+    /* --- Light Mode --- */
     -fx-font-family: 'Arial', sans-serif;
     -color-bg: #ffffff;
     -color-text: #000000;
@@ -13,7 +13,7 @@
     -fx-background-color: -color-bg;
 }
 
-/* --- DARK MODE ÜBERSCHREIBUNGEN --- */
+/* --- DARK MODE --- */
 .root.dark-mode {
     -color-bg: #121213;
     -color-text: #ffffff;
@@ -58,12 +58,12 @@
     -fx-text-fill: white;
 }
 
-/* Spezifische Tasten-Status (wird von Java gesetzt) */
+/* Spezifische Tasten-Status  */
 .key-correct { -fx-background-color: -color-tile-correct; -fx-text-fill: white !important; }
 .key-present { -fx-background-color: -color-tile-present; -fx-text-fill: white !important; }
 .key-absent  { -fx-background-color: -color-tile-absent;  -fx-text-fill: white !important; }
 
-/* --- GRID TILES (Die Buchstaben-Kästchen) --- */
+/* --- GRID TILES  --- */
 .letter-tile {
     -fx-background-color: transparent;
     -fx-border-color: -color-tile-border;
